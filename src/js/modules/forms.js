@@ -3,8 +3,19 @@
 
 const forms = () => {
     const allForms = document.querySelectorAll('form'),
-          allInputs = document.querySelectorAll('input');
+          allInputs = document.querySelectorAll('input'),
+          upload = document.querySelectorAll('[name="photo"]');
     
+    upload.forEach(item => {
+        item.addEventListener('input', () => {
+            let dots;
+            const arr = item.files[0].name.split('.');
+
+            arr[0].length > 6 ? dots = "..." : dots = '.';
+            const name = arr[0].substring(0, 6) + dots + arr[1];
+            item.previousElementSibling.textContent = name;
+        });
+    });
     // checkNumInputs('input[name="phone"]');
 
     const messages = {
@@ -17,16 +28,14 @@ const forms = () => {
     };
 
     const path = {
-        design: '',
-        question: ''
+        design: 'http://127.0.0.1:8000/design/',
+        question: 'http://127.0.0.1:8000/contacts/'
     };
 
-    const postData = async (url, data) => {
+    const postData = async (url, data, headers) => {
         let res = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-type': 'application/json; charset=utf-8'
-                },
+            headers: headers,
             body: data
         });
         return await res.json();
@@ -35,6 +44,9 @@ const forms = () => {
     const clearInputs = () => {
         allInputs.forEach(input => {
             input.value = '';
+        });
+        upload.forEach(item => {
+            item.previousElementSibling.textContent = "Файл не выбран";
         });
     };
 
@@ -45,7 +57,6 @@ const forms = () => {
             let statusMessage = document.createElement('div');
             statusMessage.classList.add('status');
             item.parentNode.appendChild(statusMessage);
-
             item.classList.add('animated', 'fadeOutUp');
             setTimeout(() => {
                 item.style.display = 'none';
@@ -60,23 +71,31 @@ const forms = () => {
             textMessage.textContent = messages.loading;
             statusMessage.appendChild(textMessage);
             
-            const formData = new FormData(item);
-            if (item.getAttribute('data-calc') === 'end') {
-                for (let key in state) {
-                    formData.append(key, state[key]);
-                }
+            let formData = new FormData(item),
+                api,
+                headers;
+            if (item.closest('.popup-design') || item.classList.contains('calc_form')) {
+                api = path.design;
+            } else {
+                api = path.question;
+                formData = JSON.stringify(Object.fromEntries(formData.entries()));
+                headers = {'Content-type': 'application/json; charset=utf-8'};
             }
-            const formDataJSON = JSON.stringify(Object.fromEntries(formData.entries()));
-            postData('http://127.0.0.1:8000/contacts/', formDataJSON)
+           
+            postData(api, formData, headers)
                 .then(res => {
-                    statusMessage.textContent = messages.success;
+                    statusImg.setAttribute('src', messages.ok);
+                    textMessage.textContent = messages.success;
                 }).catch(() => {
-                    console.log(res);
-                    statusMessage.textContent = messages.error;
+                    statusImg.setAttribute('src', messages.fail);
+                    textMessage.textContent = messages.error;
                     }).finally(() => {
                         clearInputs();
                         setTimeout(() => {
                             statusMessage.remove();
+                            item.style.display = 'block';
+                            item.classList.remove('fadeOutUp');
+                            item.classList.add('fadeInUp');
                         }, 5000);
                     });
             });

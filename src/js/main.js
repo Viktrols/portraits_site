@@ -8,6 +8,7 @@ import calc from "./modules/calc";
 import filter from "./modules/filter";
 import pictures from "./modules/pictures";
 import scrolling from "./modules/scrolling";
+import accordion from "./modules/accordion";
 
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -25,4 +26,5 @@ window.addEventListener('DOMContentLoaded', () => {
     filter();
     pictures('.sizes-block');
     scrolling('.pageup');
+    accordion('.accordion-heading', '.accordion-block');
 });

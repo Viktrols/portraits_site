@@ -1,7 +1,7 @@
 const showMore = (trigger, cards) => {
     const allCards = document.querySelectorAll(cards),
           btn = document.querySelector(trigger);
-    console.log(allCards);
+    
     allCards.forEach(card => {
         card.classList.add('animated', 'fadeInUp');
     });
